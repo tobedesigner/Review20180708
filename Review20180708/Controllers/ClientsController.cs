@@ -12,18 +12,28 @@ namespace Review20180708.Controllers
 {
     public class ClientsController : Controller
     {
-        private FabricsEntities db = new FabricsEntities();
+        //private FabricsEntities db = new FabricsEntities();
+        ClientRepository repo;
+        OccupationRepository occuRepo;
+
+        public ClientsController()
+        {
+            repo = RepositoryHelper.GetClientRepository();
+            occuRepo = RepositoryHelper.GetOccupationRepository(repo.UnitOfWork); //改成使用同一條連線字串連線而不是二條
+        }
 
         // GET: Clients
         public ActionResult Index()
         {
-            var client = db.Client.Include(c => c.Occupation).Take(50);
+            //var client = db.Client.Include(c => c.Occupation).Take(50);
+            var client = repo.All().Include(c => c.Occupation).OrderByDescending(c => c.ClientId).Take(50);
             return View(client.ToList());
         }
 
         public ActionResult Search(string filterword)
         {
-            var data = db.Client.Take(50).Where(c => c.FirstName.Contains(filterword)).ToList();
+            //var data = db.Client.Take(50).Where(c => c.FirstName.Contains(filterword)).ToList();
+            var data = repo.All().OrderByDescending(c => c.ClientId).Where(c => c.FirstName.Contains(filterword)).ToList();
             return View("Index", data);
         }
 
@@ -34,7 +44,8 @@ namespace Review20180708.Controllers
             {
                 return new HttpStatusCodeResult(HttpStatusCode.BadRequest);
             }
-            Client client = db.Client.Find(id);
+            //Client client = db.Client.Find(id);
+            Client client = repo.All().FirstOrDefault(c => c.ClientId == id);
             if (client == null)
             {
                 return HttpNotFound();
@@ -45,7 +56,7 @@ namespace Review20180708.Controllers
         // GET: Clients/Create
         public ActionResult Create()
         {
-            ViewBag.OccupationId = new SelectList(db.Occupation, "OccupationId", "OccupationName");
+            ViewBag.OccupationId = new SelectList(occuRepo.All(), "OccupationId", "OccupationName");
             return View();
         }
 
@@ -58,12 +69,14 @@ namespace Review20180708.Controllers
         {
             if (ModelState.IsValid)
             {
-                db.Client.Add(client);
-                db.SaveChanges();
+                //db.Client.Add(client);
+                //db.SaveChanges();
+                repo.Add(client);
+                repo.UnitOfWork.Commit();
                 return RedirectToAction("Index");
             }
 
-            ViewBag.OccupationId = new SelectList(db.Occupation, "OccupationId", "OccupationName", client.OccupationId);
+            ViewBag.OccupationId = new SelectList(occuRepo.All(), "OccupationId", "OccupationName", client.OccupationId);
             return View(client);
         }
 
@@ -74,12 +87,12 @@ namespace Review20180708.Controllers
             {
                 return new HttpStatusCodeResult(HttpStatusCode.BadRequest);
             }
-            Client client = db.Client.Find(id);
+            Client client = repo.All().FirstOrDefault(c => c.ClientId == id); //db.Client.Find(id);
             if (client == null)
             {
                 return HttpNotFound();
             }
-            ViewBag.OccupationId = new SelectList(db.Occupation, "OccupationId", "OccupationName", client.OccupationId);
+            ViewBag.OccupationId = new SelectList(occuRepo.All(), "OccupationId", "OccupationName", client.OccupationId);
             return View(client);
         }
 
@@ -92,11 +105,14 @@ namespace Review20180708.Controllers
         {
             if (ModelState.IsValid)
             {
+                //db.Entry(client).State = EntityState.Modified;
+                //db.SaveChanges();
+                var db = repo.UnitOfWork.Context;
                 db.Entry(client).State = EntityState.Modified;
                 db.SaveChanges();
                 return RedirectToAction("Index");
             }
-            ViewBag.OccupationId = new SelectList(db.Occupation, "OccupationId", "OccupationName", client.OccupationId);
+            ViewBag.OccupationId = new SelectList(occuRepo.All(), "OccupationId", "OccupationName", client.OccupationId);
             return View(client);
         }
 
@@ -107,7 +123,7 @@ namespace Review20180708.Controllers
             {
                 return new HttpStatusCodeResult(HttpStatusCode.BadRequest);
             }
-            Client client = db.Client.Find(id);
+            Client client = repo.All().FirstOrDefault(c => c.ClientId == id); //db.Client.Find(id);
             if (client == null)
             {
                 return HttpNotFound();
@@ -120,9 +136,9 @@ namespace Review20180708.Controllers
         [ValidateAntiForgeryToken]
         public ActionResult DeleteConfirmed(int id)
         {
-            Client client = db.Client.Find(id);
-            db.Client.Remove(client);
-            db.SaveChanges();
+            Client client = repo.All().FirstOrDefault(c => c.ClientId == id); //db.Client.Find(id);
+            repo.Delete(client); //db.Client.Remove(client);
+            repo.UnitOfWork.Commit(); //db.SaveChanges();
             return RedirectToAction("Index");
         }
 
@@ -130,7 +146,8 @@ namespace Review20180708.Controllers
         {
             if (disposing)
             {
-                db.Dispose();
+                repo.UnitOfWork.Context.Dispose();
+                //db.Dispose();
             }
             base.Dispose(disposing);
         }
