@@ -17,8 +17,14 @@ namespace Review20180708.Controllers
         // GET: Clients
         public ActionResult Index()
         {
-            var client = db.Client.Include(c => c.Occupation);
+            var client = db.Client.Include(c => c.Occupation).Take(50);
             return View(client.ToList());
+        }
+
+        public ActionResult Search(string filterword)
+        {
+            var data = db.Client.Take(50).Where(c => c.FirstName.Contains(filterword)).ToList();
+            return View("Index", data);
         }
 
         // GET: Clients/Details/5
