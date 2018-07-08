@@ -26,14 +26,14 @@ namespace Review20180708.Controllers
         public ActionResult Index()
         {
             //var client = db.Client.Include(c => c.Occupation).Take(50);
-            var client = repo.All().Include(c => c.Occupation).OrderByDescending(c => c.ClientId).Take(50);
+            var client = repo.All().Include(c => c.Occupation);
             return View(client.ToList());
         }
 
         public ActionResult Search(string filterword)
         {
             //var data = db.Client.Take(50).Where(c => c.FirstName.Contains(filterword)).ToList();
-            var data = repo.All().OrderByDescending(c => c.ClientId).Where(c => c.FirstName.Contains(filterword)).ToList();
+            var data = repo.All().Where(c => c.FirstName.Contains(filterword)).ToList();
             return View("Index", data);
         }
 
