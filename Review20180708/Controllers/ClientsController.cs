@@ -11,7 +11,7 @@ using Review20180708.Models;
 namespace Review20180708.Controllers
 {
     [RoutePrefix("client")]
-    public class ClientsController : Controller
+    public class ClientsController : BaseController
     {
         //private FabricsEntities db = new FabricsEntities();
         ClientRepository repo;
@@ -19,8 +19,8 @@ namespace Review20180708.Controllers
 
         public ClientsController()
         {
-            repo = RepositoryHelper.GetClientRepository();
-            occuRepo = RepositoryHelper.GetOccupationRepository(repo.UnitOfWork); //改成使用同一條連線字串連線而不是二條
+            repo = RepositoryHelper.GetClientRepository(unitOfWork);
+            occuRepo = RepositoryHelper.GetOccupationRepository(unitOfWork); //改成使用同一條連線字串連線而不是二條
         }
 
         [Route("Default")]
@@ -37,6 +37,11 @@ namespace Review20180708.Controllers
             //var data = db.Client.Take(50).Where(c => c.FirstName.Contains(filterword)).ToList();
             var data = repo.All().Where(c => c.FirstName.Contains(filterword)).ToList();
             return View("Index", data);
+        }
+
+        public ActionResult ErrorPage()
+        {
+            return PartialView();
         }
 
         [Route("Detail/{id}")]
