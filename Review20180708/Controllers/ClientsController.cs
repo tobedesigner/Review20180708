@@ -10,6 +10,7 @@ using Review20180708.Models;
 
 namespace Review20180708.Controllers
 {
+    [RoutePrefix("client")]
     public class ClientsController : Controller
     {
         //private FabricsEntities db = new FabricsEntities();
@@ -22,7 +23,7 @@ namespace Review20180708.Controllers
             occuRepo = RepositoryHelper.GetOccupationRepository(repo.UnitOfWork); //改成使用同一條連線字串連線而不是二條
         }
 
-        // GET: Clients
+        [Route("Default")]
         public ActionResult Index()
         {
             //var client = db.Client.Include(c => c.Occupation).Take(50);
@@ -30,6 +31,7 @@ namespace Review20180708.Controllers
             return View(client.ToList());
         }
 
+        [Route("Search")]
         public ActionResult Search(string filterword)
         {
             //var data = db.Client.Take(50).Where(c => c.FirstName.Contains(filterword)).ToList();
@@ -37,7 +39,7 @@ namespace Review20180708.Controllers
             return View("Index", data);
         }
 
-        // GET: Clients/Details/5
+        [Route("Detail/{id}")]
         public ActionResult Details(int? id)
         {
             if (id == null)
@@ -53,7 +55,7 @@ namespace Review20180708.Controllers
             return View(client);
         }
 
-        // GET: Clients/Create
+        [Route("Create")]
         public ActionResult Create()
         {
             ViewBag.OccupationId = new SelectList(occuRepo.All(), "OccupationId", "OccupationName");
@@ -80,7 +82,7 @@ namespace Review20180708.Controllers
             return View(client);
         }
 
-        // GET: Clients/Edit/5
+        [Route("Edit/{id}")]
         public ActionResult Edit(int? id)
         {
             if (id == null)
@@ -116,7 +118,7 @@ namespace Review20180708.Controllers
             return View(client);
         }
 
-        // GET: Clients/Delete/5
+        [Route("Destroy/{id}")]
         public ActionResult Delete(int? id)
         {
             if (id == null)
