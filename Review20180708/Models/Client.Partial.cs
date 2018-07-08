@@ -1,30 +1,44 @@
 namespace Review20180708.Models
 {
+    using Review20180708.Models.InputValidates;
     using System;
     using System.Collections.Generic;
     using System.ComponentModel.DataAnnotations;
-    
+
     [MetadataType(typeof(ClientMetaData))]
-    public partial class Client
+    public partial class Client : IValidatableObject
     {
+        public IEnumerable<ValidationResult> Validate(ValidationContext validationContext)
+        {
+            if (this.Longitude.HasValue != this.Latitude.HasValue)
+            {
+                yield return new ValidationResult("經緯度欄位必須一起設定", new string[] { "Longitude", "Latitude" });
+            }
+        }
     }
-    
+
     public partial class ClientMetaData
     {
         [Required]
         public int ClientId { get; set; }
         
         [StringLength(40, ErrorMessage="欄位長度不得大於 40 個字元")]
+        [Required]
         public string FirstName { get; set; }
         
         [StringLength(40, ErrorMessage="欄位長度不得大於 40 個字元")]
+        [Required]
         public string MiddleName { get; set; }
         
         [StringLength(40, ErrorMessage="欄位長度不得大於 40 個字元")]
+        [Required]
         public string LastName { get; set; }
         
         [StringLength(1, ErrorMessage="欄位長度不得大於 1 個字元")]
+        [Required]
         public string Gender { get; set; }
+        [DisplayFormat(ApplyFormatInEditMode = true, DataFormatString = "{0:yyyy-MM-dd}")]
+        [DataType(DataType.Date)] //加入此屬性後，前端此欄位 input 的 type="date"
         public Nullable<System.DateTime> DateOfBirth { get; set; }
         public Nullable<double> CreditRating { get; set; }
         
@@ -51,6 +65,7 @@ namespace Review20180708.Models
         public string Notes { get; set; }
         
         [StringLength(10, ErrorMessage="欄位長度不得大於 10 個字元")]
+        [IdNumber]
         public string IdNumber { get; set; }
         [Required]
         public bool IsDelete { get; set; }
